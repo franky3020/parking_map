@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" type="text/css" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.3/dist/leaflet.css"
+        integrity="sha256-kLaT2GOSpHechhsozzB+flnD+zUyjE2LlfWPgU04xyI=" crossorigin="" />
+
+</head>
+
+<body>
+    <div id="map"></div>
+
+</body>
+<!-- Make sure you put this AFTER Leaflet's CSS -->
+<script src="https://unpkg.com/leaflet@1.9.3/dist/leaflet.js"
+    integrity="sha256-WBkoXOwTeyKclOHuWtc+i2uENFpDZ9YPdf5Hf+D7ewM=" crossorigin=""></script>
+
+<script>
+    var options = {
+        zoomControl: true,
+        scrollWheelZoom: true,
+        center: [24.168400, 120.669642],
+        zoomControl: true,
+        zoom: 19,
+    };
+
+    var map = L.map('map', options);
+    map.attributionControl.setPrefix('Leaflet');
+
+    L.tileLayer('http://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap'
+    }).addTo(map);
+
+
+    // for test
+    // let circles = [{
+    //     "Section_ID": "0550202",
+    //     "PS_ID": "90200",
+    //     "PS_type": "2",
+    //     "PS_Lat": "24.16696",
+    //     "PS_Lng": "120.6762",
+    //     "status": "0"
+    // },
+    // {
+    //     "Section_ID": "0550203",
+    //     "PS_ID": "00200",
+    //     "PS_type": "0",
+    //     "PS_Lat": "24.1667728",
+    //     "PS_Lng": "120.668571",
+    //     "status": "1"
+    // },
+    // {
+    //     "Section_ID": "0550203",
+    //     "PS_ID": "00400",
+    //     "PS_type": "0",
+    //     "PS_Lat": "24.1667881",
+    //     "PS_Lng": "120.669472",
+    //     "status": "0"
+    // },
+    // {
+    //     "Section_ID": "0550203",
+    //     "PS_ID": "00600",
+    //     "PS_type": "0",
+    //     "PS_Lat": "24.1668",
+    //     "PS_Lng": "120.6697",
+    //     "status": "1"
+    // },
+    // {
+    //     "Section_ID": "0550203",
+    //     "PS_ID": "00800",
+    //     "PS_type": "0",
+    //     "PS_Lat": "24.1668072",
+    //     "PS_Lng": "120.669739",
+    //     "status": "0"
+    // }];
+
+    let green = '#00A600';
+    let red = '#EA0000';
+    const centerLng = 120.677300;
+    const centerLat = 24.168895;
+
+    fetch('https://datacenter.taichung.gov.tw/swagger/OpenData/791a8a4b-ade6-48cf-b3ed-6c594e58a1f1').then((res) => {
+        res.json().then((resJson) => {
+            console.log(resJson);
+            showL(resJson);
+        });
+    });
+
+    function showL(circles) {
+        for (let i = 0; i < circles.length; i++) {
+            console.log("franky-test: ", i);
+
+            let x = circles[i].PS_Lat;
+            let y = circles[i].PS_Lng;
+
+            let color = '';
+            let distance = calculateDistance(centerLat, centerLng, x, y);
+            if (distance < 0.00003) {
+                console.log("get: ", i);
+
+                if(circles[i].status === "0") {
+                    color = green;
+                } else {
+                    color = red;
+                }
+
+                var circle = L.circle([x, y], {
+                    color: color,
+                    fillColor: color,
+                    fillOpacity: 1,
+                    radius: 1
+                }).addTo(map);
+                let text = calculateDistance(centerLat, centerLng, x, y);
+                circle.bindPopup(`<b>${text}</b>`).openPopup();
+            }
+        }
+    }
+
+    function calculateDistance(x1, y1, x2, y2) {
+        let xLenggh = x2 - x1;
+        let yLenggh = y2 - y1;
+        return (xLenggh * xLenggh + yLenggh * yLenggh);
+    }
+</script>
+</html>
