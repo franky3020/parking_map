@@ -84,26 +84,47 @@
     const centerLng = 120.677300;
     const centerLat = 24.168895;
 
+
     fetch('https://datacenter.taichung.gov.tw/swagger/OpenData/791a8a4b-ade6-48cf-b3ed-6c594e58a1f1').then((res) => {
         res.json().then((resJson) => {
             console.log(resJson);
+
+            let allIdList = [];
+            let isHaveSame = false;
+            for (let i = 0; i < resJson.length; i++) {
+                let section_id = resJson[i].Section_ID;
+                let ps_id = resJson[i].PS_ID;
+                let key = section_id + "_" + ps_id;
+
+                if(allIdList.includes(key)) {
+                    console.log("抓到一樣的", key);
+                    isHaveSame = true;
+                } else {
+                    allIdList.push(key);
+                }
+            }
+
+            if (!isHaveSame) {
+                console.log("沒有一樣的");
+            }
+
             showL(resJson);
         });
     });
 
-    function showL(circles) {
-        for (let i = 0; i < circles.length; i++) {
-            console.log("franky-test: ", i);
+    function showL(allParkingData) {
+        for (let i = 0; i < allParkingData.length; i++) {
 
-            let x = circles[i].PS_Lat;
-            let y = circles[i].PS_Lng;
+            let x = allParkingData[i].PS_Lat;
+            let y = allParkingData[i].PS_Lng;
+
+            let key = allParkingData[i].Section_ID + "_" + allParkingData[i].PS_ID;
 
             let color = '';
             let distance = calculateDistance(centerLat, centerLng, x, y);
             if (distance < 0.00003) {
-                console.log("get: ", i);
 
-                if(circles[i].status === "0") {
+                if(allParkingData[i].status === "0") {
                     color = green;
                 } else {
                     color = red;
@@ -116,7 +137,8 @@
                     radius: 1
                 }).addTo(map);
                 let text = calculateDistance(centerLat, centerLng, x, y);
-                circle.bindPopup(`<b>${text}</b>`).openPopup();
+
+                circle.bindPopup(`<b>${key}</b>`).openPopup();
             }
         }
     }
